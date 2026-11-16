@@ -24,3 +24,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # 9. Start the server. The host must be 0.0.0.0, and the port comes from
 #    the variable PORT, or 8080 when PORT is not set:
 #      CMD ["sh", "-c", "exec python -m coworker.run --host 0.0.0.0 --port ${PORT:-8080}"]
+
+WORKDIR /app
+COPY requirements.lock .
+RUN python -m pip install --require-hashes -r requirements.lock
+COPY coworker ./coworker
+RUN useradd --create-home --uid 10001 app && mkdir -p /data/club && chown -R app:app /data/club
+ENV CLUB_STATE_DIR=/data/club
+USER app
+EXPOSE 8080
+CMD ["sh", "-c", "exec python -m coworker.run --host 0.0.0.0 --port ${PORT:-8080}"]

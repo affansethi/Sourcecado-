@@ -132,8 +132,12 @@ def main(argv: list[str] | None = None) -> None:
         # nothing: the server may start.
         #
         # Until you write it, the server refuses every public address.
-        print("refusing to bind off loopback: the check is not written yet", file=sys.stderr)
-        sys.exit(2)
+        missing = missing_hosted_settings()
+        if missing:
+            names = ", ".join(missing)
+            print(f"refusing to bind off loopback: set {names}", file=sys.stderr)
+            sys.exit(2)
+
 
     _load_dotenv(state_dir() / ".env")
     _load_dotenv(Path(__file__).resolve().parent.parent / ".env")

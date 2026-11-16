@@ -1216,6 +1216,9 @@ def create_app(
         # A request for the path "/healthz" needs no login and no origin
         # check. Pass it on with `return await call_next(request)`, in the
         # same way as the OPTIONS lines above.
+        if request.url.path == "/healthz":
+            return await call_next(request)
+
         if request.url.path in {"/v1/gmail/callback", "/v1/mcp/oauth/callback"}:
             return await call_next(request)
         if not _origin_allowed(request.headers.get("origin"), extra_origins):
@@ -1253,6 +1256,10 @@ def create_app(
     # Add a GET route at "/healthz". It takes no arguments and returns the
     # dictionary {"ok": True}. Railway calls it to learn that the server is
     # alive. Look at the route below for the form.
+    @app.get("/healthz")
+    def healthz():
+        return {"ok": True}
+
 
     @app.get("/v1/health")
     def health():
