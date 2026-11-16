@@ -52,5 +52,19 @@ create index meeting_evidence_user_person_idx
 
 -- Row-level security on, with no policy: the public API keys see no rows.
 -- The backend connects as the table owner, so it is not affected.
-alter table meeting_evidence enable row level security;
+
+
 -- YOUR TURN (block 1, piece 2): the same line for meeting_candidates.
+create table meeting_candidates (
+    user_id uuid not null references auth.users(id) on delete cascade,
+    evidence_id text collate "C" not null,
+    person_id text collate "C" not null,
+    status text collate "C" not null,
+    match_reason text collate "C" not null,
+    updated_at text collate "C" not null,
+    primary key (user_id, evidence_id, person_id)
+);
+create index meeting_candidates_user_person_idx
+    on meeting_candidates (user_id, person_id);
+alter table meeting_evidence enable row level security;
+alter table meeting_candidates enable row level security;

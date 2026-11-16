@@ -49,9 +49,18 @@ class Database:
         #        select set_config('app.user_id', %s, true)
         #    The `true` means "for this transaction only".
         # 4. `yield` the connection to the caller.
-        raise NotImplementedError("Write Database.tx first (block 1, piece 1).")
-        yield  # your code replaces these two lines
+        uid = user_id
+        if isinstance(user_id,UUID):
+            uid = user_id
+        else:
+            uid = UUID(user_id)
+                
+        with self._pool.connection() as conn:
+            conn.execute("select set_config('app.user_id', %s, true)", (str(uid),))
+            yield conn
 
+
+        
     def close(self) -> None:
         self._pool.close()
 
@@ -83,6 +92,9 @@ def _service_user() -> UUID:
     # Read the environment variable named by WORKSPACE_USER_ID_ENV and strip
     # the spaces. When it has a value, return it as a UUID. When it is empty
     # or not set, return DEV_USER_ID.
+    value = os.environ.get(WORKSPACE_USER_ID_ENV, "").strip()
+    if value:
+        return UUID(value)
     return DEV_USER_ID
 
 
