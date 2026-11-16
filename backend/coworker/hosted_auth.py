@@ -82,4 +82,24 @@ class HostedAuth:
         #    Answer "not_invited" in every other case, also for no email.
         #
         # Until you write it, nobody can sign in.
-        return "invalid"
+                # 1. No token means not signed in.
+        if not token:
+            return "invalid"
+
+        try:
+            claims = jwt.decode(
+                token,
+                self._key_lookup(token),
+                algorithms=["ES256"],
+                audience="authenticated",
+                issuer=self.supabase_url + "/auth/v1",
+                options={"require": ["exp", "aud", "iss"]},
+            )
+        except Exception:
+            return "invalid"
+
+        email = claims.get("email")
+        if isinstance(email, str) and email.strip().lower() in self.allowed_emails:
+            return "ok"
+        return "not_invited"
+
